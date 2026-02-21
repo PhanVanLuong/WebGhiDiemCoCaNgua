@@ -44,6 +44,11 @@ button {
   cursor:pointer;
 }
 
+.item-value {
+  display: inline-block;
+  width: 100px;
+}
+
 input {
   padding:6px;
   border-radius:6px;
@@ -131,15 +136,16 @@ function render(){
     el.innerHTML+=`
     <div class="player">
       ${nameHTML}
+      <button class="btn-red" onclick="removePlayer(${i})">❌ Xóa</button>
       <br><br>
 
-      Đá: ${p.da}
+      <span class="item-value">Đá: ${p.da}</span>
       <button class="btn-green" onclick="incDa(${i})">+</button>
       <button class="btn-red" onclick="decDa(${i})">-</button>
 
       <br>
 
-      Bị đá: ${p.bida}
+      <span class="item-value">Bị đá: ${p.bida}</span>
       <button class="btn-green" onclick="incBiDa(${i})">+</button>
       <button class="btn-red" onclick="decBiDa(${i})">-</button>
 
@@ -183,6 +189,19 @@ function addPlayer(){
     });
     render();
   } else alert("Tối đa 4 người!");
+}
+
+/* ===== THÊM CHỨC NĂNG XÓA NGƯỜI ===== */
+function removePlayer(i){
+  if(players.length <= 2){
+    alert("Phải có ít nhất 2 người chơi!");
+    return;
+  }
+
+  if(confirm("Bạn có chắc muốn xóa người này?")){
+    players.splice(i,1);
+    render();
+  }
 }
 
 function reset(){
