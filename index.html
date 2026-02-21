@@ -33,12 +33,6 @@ h1 { text-align:center; color:white; }
 .name {
   font-weight:bold;
   font-size:16px;
-  cursor:pointer;
-}
-
-input {
-  padding:5px;
-  font-size:14px;
 }
 
 button {
@@ -50,12 +44,21 @@ button {
   cursor:pointer;
 }
 
+input {
+  padding:6px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
 .btn-green { background:#1cc88a; color:white; }
 .btn-blue { background:#4e73df; color:white; }
 .btn-red { background:#e74a3b; color:white; }
 .btn-gray { background:#858796; color:white; }
 
-.summary { font-weight:bold; font-size:16px; }
+.summary {
+  font-weight:bold;
+  font-size:16px;
+}
 
 .history-item {
   background:#eee;
@@ -91,8 +94,8 @@ button {
 
 <script>
 let players = JSON.parse(localStorage.getItem("players")) || [
-  {name:"Người 1", da:0, bida:0},
-  {name:"Người 2", da:0, bida:0}
+  {name:"Người 1", da:0, bida:0, editing:false},
+  {name:"Người 2", da:0, bida:0, editing:false}
 ];
 
 let history = JSON.parse(localStorage.getItem("history")) || [];
@@ -111,41 +114,56 @@ function render(){
     totalDa+=p.da;
     totalBiDa+=p.bida;
 
+    let nameHTML="";
+
+    if(p.editing){
+      nameHTML = `
+        <input id="inputName${i}" value="${p.name}">
+        <button class="btn-blue" onclick="updateName(${i})">Update</button>
+      `;
+    }else{
+      nameHTML = `
+        <span class="name">${p.name}</span>
+        <button onclick="editName(${i})">✏️</button>
+      `;
+    }
+
     el.innerHTML+=`
     <div class="player">
-      <div class="name" onclick="editName(${i})">${p.name}</div>
-      <br>
+      ${nameHTML}
+      <br><br>
+
       Đá: ${p.da}
       <button class="btn-green" onclick="incDa(${i})">+</button>
       <button class="btn-red" onclick="decDa(${i})">-</button>
+
       <br>
+
       Bị đá: ${p.bida}
       <button class="btn-green" onclick="incBiDa(${i})">+</button>
       <button class="btn-red" onclick="decBiDa(${i})">-</button>
+
       <br>
-      <b>Tổng: ${p.da+p.bida}</b>
+      <b>Tổng: ${p.da - p.bida}</b>
     </div>`;
   });
 
-  document.getElementById("totalDa").innerText=totalDa;
-  document.getElementById("totalBiDa").innerText=totalBiDa;
+  document.getElementById("totalDa").innerText = totalDa;
+  document.getElementById("totalBiDa").innerText = totalBiDa;
 
   renderHistory();
   saveStorage();
 }
 
 function editName(i){
-  const el=document.getElementsByClassName("name")[i];
-  const old=players[i].name;
-  el.innerHTML=`<input id="inputName${i}" value="${old}" 
-    onblur="saveName(${i})"
-    onkeydown="if(event.key==='Enter'){saveName(${i})}" />`;
-  document.getElementById("inputName"+i).focus();
+  players[i].editing = true;
+  render();
 }
 
-function saveName(i){
-  const value=document.getElementById("inputName"+i).value;
-  players[i].name=value || "Người "+(i+1);
+function updateName(i){
+  const val=document.getElementById("inputName"+i).value;
+  players[i].name = val || "Người " + (i+1);
+  players[i].editing = false;
   render();
 }
 
@@ -157,13 +175,21 @@ function decBiDa(i){ if(players[i].bida>0) players[i].bida--; render(); }
 
 function addPlayer(){
   if(players.length<4){
-    players.push({name:"Người "+(players.length+1),da:0,bida:0});
+    players.push({
+      name:"Người "+(players.length+1),
+      da:0,
+      bida:0,
+      editing:false
+    });
     render();
   } else alert("Tối đa 4 người!");
 }
 
 function reset(){
-  players.forEach(p=>{p.da=0;p.bida=0});
+  players.forEach(p=>{
+    p.da=0;
+    p.bida=0;
+  });
   render();
 }
 
@@ -171,7 +197,7 @@ function saveHistory(){
   const date=new Date().toLocaleString();
   let result=`${date}<br>`;
   players.forEach(p=>{
-    result+=`${p.name}: ${p.da+p.bida} điểm | `;
+    result+=`${p.name}: ${p.da - p.bida} điểm | `;
   });
   history.unshift(result);
   reset();
